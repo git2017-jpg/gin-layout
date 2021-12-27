@@ -2,8 +2,8 @@ package router
 
 import (
 	"encoding/base64"
+	"github.com/BooeZhang/gin-layout/internal/apiserver/model"
 	"github.com/BooeZhang/gin-layout/middleware"
-	"github.com/BooeZhang/gin-layout/model"
 	"github.com/BooeZhang/gin-layout/pkg/log"
 	"github.com/BooeZhang/gin-layout/store"
 	"net/http"

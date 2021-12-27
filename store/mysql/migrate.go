@@ -2,7 +2,7 @@ package mysql
 
 import (
 	"fmt"
-	"github.com/BooeZhang/gin-layout/model"
+	"github.com/BooeZhang/gin-layout/internal/apiserver/model"
 	"gorm.io/gorm"
 )
 

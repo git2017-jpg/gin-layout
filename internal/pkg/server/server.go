@@ -4,14 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/BooeZhang/gin-layout/internal/pkg/options"
 	"github.com/BooeZhang/gin-layout/middleware"
 	"github.com/BooeZhang/gin-layout/pkg/log"
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	ginprometheus "github.com/zsais/go-gin-prometheus"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -21,7 +24,7 @@ import (
 type APIServer struct {
 	Middlewares []string
 	Mode        string
-	RunInfo *RunInfo
+	RunInfo     *runInfo
 
 	// ShutdownTimeout 优雅关闭
 	ShutdownTimeout time.Duration
@@ -35,10 +38,46 @@ type APIServer struct {
 	HttpServer *http.Server
 }
 
+// RunInfo 服务器运行配置。
+type runInfo struct {
+	BindAddress string
+	BindPort    int
+	CertKey     options.CertKey
+}
+
+// Address 将主机 IP 地址和主机端口号连接成一个地址字符串，例如：0.0.0.0:8443。
+func (r *runInfo) Address() string {
+	return net.JoinHostPort(r.BindAddress, strconv.Itoa(r.BindPort))
+}
+
 func InitGenericAPIServer(s *APIServer) {
 	s.Setup()
 	s.InstallMiddlewares()
 	s.InstallAPIs()
+}
+
+// New 从给定的配置返回 GenericAPIServer 的新实例。
+func New(opts *options.Options) *APIServer {
+	s := &APIServer{
+		RunInfo: &runInfo{
+			BindAddress: opts.HttpServerOptions.BindAddress,
+			BindPort:    opts.HttpServerOptions.BindPort,
+			CertKey: options.CertKey{
+				CertFile: opts.HttpServerOptions.ServerCert.CertFile,
+				KeyFile:  opts.HttpServerOptions.ServerCert.KeyFile,
+			},
+		},
+		Mode:            opts.ServerRunOptions.Mode,
+		Healthz:         opts.ServerRunOptions.Healthz,
+		Middlewares:     opts.ServerRunOptions.Middlewares,
+		EnableMetrics:   opts.FeatureOptions.EnableMetrics,
+		EnableProfiling: opts.FeatureOptions.EnableProfiling,
+		Engine:          gin.New(),
+	}
+
+	InitGenericAPIServer(s)
+
+	return s
 }
 
 // InstallAPIs 通用api。

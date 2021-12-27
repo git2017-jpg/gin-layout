@@ -2,7 +2,7 @@ package app
 
 import (
 	"fmt"
-	"github.com/BooeZhang/gin-layout/internal/apiserver/options"
+	"github.com/BooeZhang/gin-layout/internal/pkg/options"
 	"github.com/BooeZhang/gin-layout/pkg/log"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -47,9 +47,9 @@ func WithRunFunc(run RunFunc) Option {
 }
 
 // NewApp 根据给定的应用程序名称和其他选项创建一个新的应用程序实例。
-func NewApp(opts ...Option) *App {
+func NewApp(basename string, opts ...Option) *App {
 	a := &App{
-		basename: "api-server",
+		basename: basename,
 	}
 
 	for _, o := range opts {
@@ -72,7 +72,7 @@ func (a *App) buildCommand() {
 	cmd.SetErr(os.Stderr)
 	cmd.Flags().SortFlags = true
 	if !a.noConfig {
-		addConfigFlag(a.basename, cmd.Flags())
+		options.AddConfigFlag(a.basename, cmd.Flags())
 	}
 	if a.runFunc != nil {
 		cmd.RunE = a.runCommand

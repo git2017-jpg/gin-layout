@@ -1,7 +1,6 @@
 package options
 
 import (
-	"github.com/BooeZhang/gin-layout/internal/pkg/server"
 	"time"
 )
 
@@ -15,24 +14,10 @@ type JwtOptions struct {
 
 // NewJwtOptions 创建一个默认的 JWT 配置项。
 func NewJwtOptions() *JwtOptions {
-	defaults := server.NewConfig()
-
 	return &JwtOptions{
-		Realm:      defaults.Jwt.Realm,
-		Key:        defaults.Jwt.Key,
-		Timeout:    defaults.Jwt.Timeout,
-		MaxRefresh: defaults.Jwt.MaxRefresh,
+		Realm:      "jwt",
+		Key:        "",
+		Timeout:    1 * time.Hour,
+		MaxRefresh: 1 * time.Hour,
 	}
-}
-
-// ApplyTo 赋值jwt配置
-func (s *JwtOptions) ApplyTo(c *server.Config) error {
-	c.Jwt = &server.JwtInfo{
-		Realm:      s.Realm,
-		Key:        s.Key,
-		Timeout:    s.Timeout,
-		MaxRefresh: s.MaxRefresh,
-	}
-
-	return nil
 }

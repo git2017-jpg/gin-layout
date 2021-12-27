@@ -1,16 +1,16 @@
 package apiserver
 
 import (
-	"github.com/BooeZhang/gin-layout/internal/apiserver/config"
-	"github.com/BooeZhang/gin-layout/internal/apiserver/options"
 	"github.com/BooeZhang/gin-layout/internal/pkg/app"
+	"github.com/BooeZhang/gin-layout/internal/pkg/options"
 	"github.com/BooeZhang/gin-layout/pkg/log"
 )
 
 // NewApp 创建应用程序
-func NewApp() *app.App {
-	opts := options.NewOptions()
+func NewApp(basename string) *app.App {
+	opts := options.DefaultOption()
 	application := app.NewApp(
+		basename,
 		app.WithOptions(opts),
 		app.WithRunFunc(run(opts)),
 	)
@@ -24,13 +24,8 @@ func run(opts *options.Options) app.RunFunc {
 		log.Init(opts.Log)
 		defer log.Flush()
 
-		cfg, err := config.CreateConfigFromOptions(opts)
-		if err != nil {
-			return err
-		}
-
-		fn := func(cfg *config.Config) error {
-			server, err := createAPIServer(cfg)
+		fn := func(opts *options.Options) error {
+			server, err := createAPIServer(opts)
 			if err != nil {
 				return err
 			}
@@ -38,6 +33,6 @@ func run(opts *options.Options) app.RunFunc {
 			return server.Run()
 		}
 
-		return fn(cfg)
+		return fn(opts)
 	}
 }

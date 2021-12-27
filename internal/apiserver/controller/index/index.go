@@ -1,7 +1,7 @@
 package index
 
 import (
-	"github.com/BooeZhang/gin-layout/service"
+	"github.com/BooeZhang/gin-layout/internal/apiserver/service"
 	"github.com/BooeZhang/gin-layout/store"
 	"github.com/gin-gonic/gin"
 	"net/http"

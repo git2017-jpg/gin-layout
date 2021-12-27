@@ -1,7 +1,7 @@
 package sysuser
 
 import (
-	"github.com/BooeZhang/gin-layout/model"
+	"github.com/BooeZhang/gin-layout/internal/apiserver/model"
 	"github.com/BooeZhang/gin-layout/pkg/erroron"
 	"github.com/BooeZhang/gin-layout/pkg/log"
 	"github.com/BooeZhang/gin-layout/pkg/response"

@@ -2,7 +2,7 @@ package router
 
 import (
 	"fmt"
-	"github.com/BooeZhang/gin-layout/internal/apiserver/options"
+	"github.com/BooeZhang/gin-layout/internal/pkg/options"
 	"github.com/BooeZhang/gin-layout/pkg/erroron"
 	"github.com/BooeZhang/gin-layout/pkg/log"
 	"github.com/BooeZhang/gin-layout/pkg/response"
