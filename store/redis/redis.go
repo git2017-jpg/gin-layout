@@ -13,12 +13,16 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
 
 type datastore struct {
 	redisCli redis.UniversalClient
 }
+
+var (
+	redisFactory store.Cache
+	once         sync.Once
+)
 
 func (ds *datastore) Close() error {
 	if ds.redisCli != nil {
@@ -28,121 +32,12 @@ func (ds *datastore) Close() error {
 	return nil
 }
 
-func (ds *datastore) GetRedis() redis.UniversalClient {
+func (ds *datastore) GetCache() redis.UniversalClient {
 	return ds.redisCli
 }
 
-func (ds *datastore) GetMysql() *gorm.DB {
-	return nil
-}
-
-var (
-	redisFactory store.Factory
-	once         sync.Once
-)
-
-type RedisOpts redis.UniversalOptions
-
-func (o *RedisOpts) cluster() *redis.ClusterOptions {
-	if len(o.Addrs) == 0 {
-		o.Addrs = []string{"127.0.0.1:6379"}
-	}
-
-	return &redis.ClusterOptions{
-		Addrs:     o.Addrs,
-		OnConnect: o.OnConnect,
-
-		Password: o.Password,
-
-		MaxRedirects:   o.MaxRedirects,
-		ReadOnly:       o.ReadOnly,
-		RouteByLatency: o.RouteByLatency,
-		RouteRandomly:  o.RouteRandomly,
-
-		MaxRetries:      o.MaxRetries,
-		MinRetryBackoff: o.MinRetryBackoff,
-		MaxRetryBackoff: o.MaxRetryBackoff,
-
-		DialTimeout:        o.DialTimeout,
-		ReadTimeout:        o.ReadTimeout,
-		WriteTimeout:       o.WriteTimeout,
-		PoolSize:           o.PoolSize,
-		MinIdleConns:       o.MinIdleConns,
-		MaxConnAge:         o.MaxConnAge,
-		PoolTimeout:        o.PoolTimeout,
-		IdleTimeout:        o.IdleTimeout,
-		IdleCheckFrequency: o.IdleCheckFrequency,
-
-		TLSConfig: o.TLSConfig,
-	}
-}
-
-func (o *RedisOpts) simple() *redis.Options {
-	addr := "127.0.0.1:6379"
-	if len(o.Addrs) > 0 {
-		addr = o.Addrs[0]
-	}
-
-	return &redis.Options{
-		Addr:      addr,
-		OnConnect: o.OnConnect,
-
-		DB:       o.DB,
-		Password: o.Password,
-
-		MaxRetries:      o.MaxRetries,
-		MinRetryBackoff: o.MinRetryBackoff,
-		MaxRetryBackoff: o.MaxRetryBackoff,
-
-		DialTimeout:  o.DialTimeout,
-		ReadTimeout:  o.ReadTimeout,
-		WriteTimeout: o.WriteTimeout,
-
-		PoolSize:           o.PoolSize,
-		MinIdleConns:       o.MinIdleConns,
-		MaxConnAge:         o.MaxConnAge,
-		PoolTimeout:        o.PoolTimeout,
-		IdleTimeout:        o.IdleTimeout,
-		IdleCheckFrequency: o.IdleCheckFrequency,
-
-		TLSConfig: o.TLSConfig,
-	}
-}
-
-func (o *RedisOpts) failover() *redis.FailoverOptions {
-	if len(o.Addrs) == 0 {
-		o.Addrs = []string{"127.0.0.1:26379"}
-	}
-
-	return &redis.FailoverOptions{
-		SentinelAddrs: o.Addrs,
-		MasterName:    o.MasterName,
-		OnConnect:     o.OnConnect,
-
-		DB:       o.DB,
-		Password: o.Password,
-
-		MaxRetries:      o.MaxRetries,
-		MinRetryBackoff: o.MinRetryBackoff,
-		MaxRetryBackoff: o.MaxRetryBackoff,
-
-		DialTimeout:  o.DialTimeout,
-		ReadTimeout:  o.ReadTimeout,
-		WriteTimeout: o.WriteTimeout,
-
-		PoolSize:           o.PoolSize,
-		MinIdleConns:       o.MinIdleConns,
-		MaxConnAge:         o.MaxConnAge,
-		PoolTimeout:        o.PoolTimeout,
-		IdleTimeout:        o.IdleTimeout,
-		IdleCheckFrequency: o.IdleCheckFrequency,
-
-		TLSConfig: o.TLSConfig,
-	}
-}
-
 // GetRedisFactoryOr 使用给定的配置创建 redis 工厂。
-func GetRedisFactoryOr(opts *options.RedisOptions) (store.Factory, error) {
+func GetRedisFactoryOr(opts *options.RedisOptions) (store.Cache, error) {
 	if opts == nil && redisFactory == nil {
 		return nil, fmt.Errorf("failed to get redis store fatory")
 	}
@@ -167,7 +62,7 @@ func GetRedisFactoryOr(opts *options.RedisOptions) (store.Factory, error) {
 			}
 		}
 
-		options := &RedisOpts{
+		redisOption := &redis.UniversalOptions{
 			Addrs:        opts.Addrs,
 			MasterName:   opts.MasterName,
 			Password:     opts.Password,
@@ -182,13 +77,13 @@ func GetRedisFactoryOr(opts *options.RedisOptions) (store.Factory, error) {
 
 		if opts.MasterName != "" {
 			log.Info("--> [REDIS] Creating sentinel-backed failover client")
-			client = redis.NewFailoverClient(options.failover())
+			client = redis.NewFailoverClient(redisOption.Failover())
 		} else if opts.EnableCluster {
 			log.Info("--> [REDIS] Creating cluster client")
-			client = redis.NewClusterClient(options.cluster())
+			client = redis.NewClusterClient(redisOption.Cluster())
 		} else {
 			log.Info("--> [REDIS] Creating single-node client")
-			client = redis.NewClient(options.simple())
+			client = redis.NewClient(redisOption.Simple())
 		}
 
 		pong, err := client.Ping(context.Background()).Result()
