@@ -7,10 +7,9 @@ import (
 )
 
 // NewApp 创建应用程序
-func NewApp(basename string) *app.App {
+func NewApp() *app.App {
 	opts := options.DefaultOption()
 	application := app.NewApp(
-		basename,
 		app.WithOptions(opts),
 		app.WithRunFunc(run(opts)),
 	)

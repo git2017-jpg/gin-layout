@@ -56,6 +56,7 @@ func newJWTAuth(store store.Factory) *jwt.GinJWTMiddleware {
 	return ginJwt
 }
 
+// 校验登陆用户是否合法并生成jwt token
 func authenticator(store store.Factory) func(c *gin.Context) (interface{}, error) {
 	return func(c *gin.Context) (interface{}, error) {
 		var login loginInfo

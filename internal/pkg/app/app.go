@@ -46,14 +46,22 @@ func WithRunFunc(run RunFunc) Option {
 	}
 }
 
-// NewApp 根据给定的应用程序名称和其他选项创建一个新的应用程序实例。
-func NewApp(basename string, opts ...Option) *App {
-	a := &App{
-		basename: basename,
+// WithName 设置服务名字
+func WithName(name string) Option {
+	return func(app *App) {
+		app.basename = name
 	}
+}
+
+// NewApp 根据给定的应用程序名称和其他选项创建一个新的应用程序实例。
+func NewApp(opts ...Option) *App {
+	a := &App{}
 
 	for _, o := range opts {
 		o(a)
+	}
+	if len(a.basename) == 0 && a.basename == "" {
+		a.basename = "api-server"
 	}
 	a.buildCommand()
 	return a
