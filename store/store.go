@@ -6,7 +6,7 @@ import (
 )
 
 type Factory interface {
-	GetMysql() *gorm.DB
+	GetDB() *gorm.DB
 	Close() error
 }
 

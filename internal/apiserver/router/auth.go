@@ -72,7 +72,7 @@ func authenticator(store store.Factory) func(c *gin.Context) (interface{}, error
 		}
 
 		var user model.SysUserModel
-		db := store.GetMysql()
+		db := store.GetDB()
 		err = db.Model(new(model.SysUserModel)).Where("user_name=?", login.Username).First(&user).Error
 		if err != nil {
 			log.Errorf("get user information failed: %s", err.Error())

@@ -27,7 +27,7 @@ func (ds *datastore) Close() error {
 	return _db.Close()
 }
 
-func (ds *datastore) GetMysql() *gorm.DB {
+func (ds *datastore) GetDB() *gorm.DB {
 	return ds.db
 }
 
