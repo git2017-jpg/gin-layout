@@ -80,9 +80,13 @@ func GetMysqlFactoryOr(opts *options.MySQLOptions) (store.Factory, error) {
 	if mysqlFactory == nil || err != nil {
 		return nil, fmt.Errorf("failed to get mysql store fatory, mysqlFactory: %+v, error: %w", mysqlFactory, err)
 	}
-	//err = migrateDatabase(dbIns)
-	//if err != nil {
-	//	log.Error(err.Error())
-	//}
+	err = migrateDatabase(dbIns)
+	if err != nil {
+		log.Error(err.Error())
+	}
 	return mysqlFactory, nil
+}
+
+func GetMysqlFactory() store.Factory {
+	return mysqlFactory
 }

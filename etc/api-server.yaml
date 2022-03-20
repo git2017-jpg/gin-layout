@@ -44,3 +44,6 @@ jwt:
 log:
 
 feature:
+
+casbin:
+  model-path: resource/rbac_model.conf

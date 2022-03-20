@@ -1,19 +1,20 @@
 package index
 
 import (
-	"github.com/BooeZhang/gin-layout/internal/apiserver/service"
+	"github.com/BooeZhang/gin-layout/internal/apiserver/service/index"
 	"github.com/BooeZhang/gin-layout/store"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 type Controller struct {
-	srv service.Service
+	srv index.IIndex
 }
 
-func NewIndexController(store store.Factory) *Controller {
+// NewIndexController index控制器
+func NewIndexController(store store.Factory, cache store.Cache) *Controller {
 	return &Controller{
-		srv: service.NewService(store),
+		srv: index.NewIndexService(store, cache),
 	}
 }
 

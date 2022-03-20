@@ -33,6 +33,7 @@ type Options struct {
 	JwtOptions        *JwtOptions        `json:"jwt"      mapstructure:"jwt"`
 	Log               *log.Options       `json:"log"      mapstructure:"log"`
 	FeatureOptions    *FeatureOptions    `json:"feature"  mapstructure:"feature"`
+	CasBinOptions     *CasBinOptions     `json:"casbin"   mapstructure:"casbin"`
 }
 
 // DefaultOption 默认配置选项
@@ -46,6 +47,7 @@ func DefaultOption() *Options {
 		JwtOptions:        NewJwtOptions(),
 		Log:               log.NewOptions(),
 		FeatureOptions:    NewFeatureOptions(),
+		CasBinOptions:     NewCasBinOptions(),
 	}
 
 	return o

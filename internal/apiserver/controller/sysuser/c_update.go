@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (u *Controller) Create(c *gin.Context) {
-	log.L(c).Info("user create function called.")
+func (u *Controller) Update(c *gin.Context) {
+	log.L(c).Info("user update function called.")
 
 	var r model.SysUserModel
 	if err := c.ShouldBindJSON(&r); err != nil {
@@ -17,7 +17,7 @@ func (u *Controller) Create(c *gin.Context) {
 		return
 	}
 
-	err := u.srv.SysUser().Create(c.Request.Context(), &r)
+	err := u.srv.Update(c.Request.Context(), r)
 	if err != nil {
 		response.Ok(c, erroron.ErrInternalServer, nil)
 		return

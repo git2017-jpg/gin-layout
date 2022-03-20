@@ -12,7 +12,7 @@ type Response struct {
 }
 
 type pages struct {
-	Count    int         `json:"count"`
+	Count    int64       `json:"count"`
 	Page     int         `json:"page"`
 	PageSize int         `json:"page_size"`
 	List     interface{} `json:"list"`
@@ -31,7 +31,7 @@ func Ok(c *gin.Context, err error, data interface{}) {
 }
 
 // PageOk 列表响应
-func PageOk(c *gin.Context, err error, data interface{}, count, page, pageSize int) {
+func PageOk(c *gin.Context, err error, data interface{}, count int64, page, pageSize int) {
 	p := pages{
 		Count:    count,
 		Page:     page,
@@ -39,4 +39,22 @@ func PageOk(c *gin.Context, err error, data interface{}, count, page, pageSize i
 		List:     data,
 	}
 	Ok(c, err, p)
+}
+
+func Error(c *gin.Context, err error, data interface{}) {
+	code, _, msg := erroron.DecodeErr(err)
+	if code != 0 && code < 10000 {
+		c.JSON(code, gin.H{
+			"code": code,
+			"msg":  msg,
+			"data": data,
+		})
+	} else {
+		c.JSON(code, gin.H{
+			"code": code,
+			"msg":  msg,
+			"data": data,
+		})
+	}
+	c.Abort()
 }

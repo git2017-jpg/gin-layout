@@ -5,8 +5,9 @@ import (
 	"github.com/BooeZhang/gin-layout/internal/apiserver/model"
 	"github.com/BooeZhang/gin-layout/middleware"
 	"github.com/BooeZhang/gin-layout/pkg/log"
+	"github.com/BooeZhang/gin-layout/pkg/response"
 	"github.com/BooeZhang/gin-layout/store"
-	"net/http"
+	"github.com/BooeZhang/gin-layout/store/mysql"
 	"strings"
 	"time"
 
@@ -16,8 +17,8 @@ import (
 )
 
 type loginInfo struct {
-	Username string `form:"username" json:"username" binding:"required,username"`
-	Password string `form:"password" json:"password" binding:"required,password"`
+	Username string `form:"username" json:"username" binding:"required"`
+	Password string `form:"password" json:"password" binding:"required"`
 }
 
 func newJWTAuth(store store.Factory) *jwt.GinJWTMiddleware {
@@ -30,7 +31,7 @@ func newJWTAuth(store store.Factory) *jwt.GinJWTMiddleware {
 		Authenticator:    authenticator(store),
 		LoginResponse:    loginResponse(),
 		LogoutResponse: func(c *gin.Context, code int) {
-			c.JSON(http.StatusOK, nil)
+			response.Ok(c, nil, nil)
 		},
 		RefreshResponse: refreshResponse(),
 		PayloadFunc:     payloadFunc(),
@@ -41,7 +42,7 @@ func newJWTAuth(store store.Factory) *jwt.GinJWTMiddleware {
 		IdentityKey:  middleware.UsernameKey,
 		Authorizator: authorizator(),
 		Unauthorized: func(c *gin.Context, code int, message string) {
-			c.JSON(code, gin.H{
+			response.Ok(c, nil, gin.H{
 				"code": code,
 				"msg":  message,
 			})
@@ -92,7 +93,7 @@ func authenticator(store store.Factory) func(c *gin.Context) (interface{}, error
 
 func loginResponse() func(c *gin.Context, code int, token string, expire time.Time) {
 	return func(c *gin.Context, code int, token string, expire time.Time) {
-		c.JSON(http.StatusOK, gin.H{
+		response.Ok(c, nil, gin.H{
 			"token":  token,
 			"expire": expire.Format(time.RFC3339),
 		})
@@ -101,7 +102,7 @@ func loginResponse() func(c *gin.Context, code int, token string, expire time.Ti
 
 func refreshResponse() func(c *gin.Context, code int, token string, expire time.Time) {
 	return func(c *gin.Context, code int, token string, expire time.Time) {
-		c.JSON(http.StatusOK, gin.H{
+		response.Ok(c, nil, gin.H{
 			"token":  token,
 			"expire": expire.Format(time.RFC3339),
 		})
@@ -112,10 +113,14 @@ func payloadFunc() func(data interface{}) jwt.MapClaims {
 	return func(data interface{}) jwt.MapClaims {
 		claims := jwt.MapClaims{}
 		if u, ok := data.(model.SysUserModel); ok {
+			var roleIds []uint32
+			db := mysql.GetMysqlFactory()
+			_ = db.GetDB().Model(&model.UserRoleModel{}).Select("role_id").Where("user_id = ?", u.ID).Find(&roleIds).Error
 			claims[jwt.IdentityKey] = u.UserName
 			claims["id"] = u.ID
 			claims["username"] = u.UserName
 			claims["is_super"] = u.IsSuper
+			claims["role_ids"] = roleIds
 		}
 
 		return claims
@@ -143,7 +148,6 @@ func parseWithHeader(c *gin.Context) (loginInfo, error) {
 
 		return loginInfo{}, jwt.ErrFailedAuthentication
 	}
-
 	return loginInfo{
 		Username: pair[0],
 		Password: pair[1],

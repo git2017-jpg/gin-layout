@@ -7,7 +7,13 @@ import (
 )
 
 func migrateDatabase(db *gorm.DB) error {
-	if err := db.AutoMigrate(new(model.SysUserModel)); err != nil {
+	if err := db.AutoMigrate(
+		new(model.SysUserModel),
+		new(model.RoleModel),
+		new(model.UserRoleModel),
+		new(model.CasBinRuleModel),
+		new(model.SysApiModel),
+	); err != nil {
 		return fmt.Errorf("migrate user model failed: %w", err)
 	}
 	return nil
