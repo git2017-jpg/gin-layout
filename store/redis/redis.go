@@ -102,3 +102,7 @@ func GetRedisFactoryOr(opts *options.RedisOptions) (store.Cache, error) {
 
 	return redisFactory, nil
 }
+
+func GetRedisFactory() store.Cache {
+	return redisFactory
+}
